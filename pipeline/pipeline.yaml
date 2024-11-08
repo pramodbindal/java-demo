@@ -13,7 +13,7 @@ spec:
       type: string
     - name: buildCommand
       type: string
-      default: "./mvnw -Dmaven.repo.local=${MVN_LOCAL_REPO} install"
+      default: "./mvnw -Dmaven.repo.local=${LOCAL_CACHE_REPO} install"
     - name: cachePatterns
       type: array
       default: ["pom.xml"]
@@ -79,7 +79,7 @@ spec:
             workingDir: $(workspaces.source.path)/repo
             name: run-go-build
             env:
-              - name: MVN_LOCAL_REPO
+              - name: LOCAL_CACHE_REPO
                 value: $(workspaces.source.path)/cache/repo
             script: |
               set -x
