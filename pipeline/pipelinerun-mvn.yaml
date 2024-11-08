@@ -12,9 +12,9 @@ spec:
     - name: revision
       value: main
     - name: registry
-      value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/mvn
+      value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/mvn-cache
     - name: buildCommand
-      value: "./mvnw -Dmaven.repo.local=${MVN_LOCAL_REPO} install"
+      value: "./mvnw -Dmaven.repo.local=${LOCAL_CACHE_REPO} install"
     - name: cachePatterns
       value: [ "**pom.xml" ]
     - name: image

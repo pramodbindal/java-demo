@@ -12,11 +12,11 @@ spec:
     - name: revision
       value: main
     - name: registry
-      value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/gradle
+      value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/gradle-cache
     - name: buildCommand
-      value: "./gradlew -g ${LOCAL_CACHE_REPO} build"
+      value: "./gradlew -g ${LOCAL_CACHE_REPO} build --no-daemon"
     - name: cachePatterns
-      value: [ "**.gradle" ]
+      value: [ "**build.gradle" ]
     - name: image
       value: gradle
   workspaces:

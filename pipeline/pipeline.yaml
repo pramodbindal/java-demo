@@ -70,7 +70,7 @@ spec:
               - name: patterns
                 value: $(params.cachePatterns)
               - name: source
-                value: oci://$(params.registry)/cache-go:{{hash}}
+                value: oci://$(params.registry):{{hash}}
               - name: cachePath
                 value: $(workspaces.source.path)/cache
               - name: workingdir
@@ -96,7 +96,7 @@ spec:
               - name: patterns
                 value: $(params.cachePatterns)
               - name: target
-                value: oci://$(params.registry)/cache-go:{{hash}}
+                value: oci://$(params.registry):{{hash}}
               - name: cachePath
                 value: $(workspaces.source.path)/cache
               - name: workingdir
