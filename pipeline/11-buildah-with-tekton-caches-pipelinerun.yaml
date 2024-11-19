@@ -1,0 +1,30 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: git-clone-demo-
+spec:
+  pipelineRef:
+    name: buildah-with-tekton-caches
+  podTemplate:
+    securityContext:
+      fsGroup: 65532
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+  params:
+    - name: repo-url
+      value: https://github.com/pramodbindal/java-demo
+    - name: branch-name
+      value: main
+    - name: build_extra_args
+      value: --volume=$(workspaces.cache.path):/cache
+
+#    - name: dockerfile
+#      value: master

@@ -1,0 +1,130 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: buildah-with-tekton-caches
+spec:
+  params:
+    #Params for Git Clone
+    - name: repo-url
+      type: string
+      description: The git repository URL to clone from.
+    - name: branch-name
+      type: string
+      description: The git branch to clone.
+    #Params for Buildah
+    - name: dockerfile
+      type: string
+      default: ""
+    #Params for Tekton-Caches
+    - name: registry
+      type: string
+      default: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/cache
+    - name: cachePatterns
+      type: array
+      default: [ "**pom.xml", "**build.gradle" ]
+
+  workspaces:
+    - name: source
+  tasks:
+    - name: create-repo
+      taskSpec:
+        params:
+          - name: cachePatterns
+            default: $(params.cachePatterns)
+          - name: image
+            default: alpine
+        steps:
+          - name: create-repo
+            image: $(params.image)
+            script: |
+              set -ex
+              mkdir -p $(workspaces.source.path)/cache $(workspaces.source.path)/repo
+              chmod 777 $(workspaces.source.path)/cache $(workspaces.source.path)/repo
+    - name: fetch-repo
+      runAfter:
+        - create-repo
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: source
+      params:
+        - name: url
+          value: $(params.repo-url)
+        - name: revision
+          value: $(params.branch-name)
+        - name: subdirectory
+          value: repo
+    - name: cache-fetch
+      runAfter:
+        - fetch-repo
+      taskSpec:
+        workspaces:
+          - name: source
+        params:
+          - name: cachePatterns
+            default: $(params.cachePatterns)
+          - name: image
+            default: alpine
+        steps:
+          - name: cache-fetch
+            ref:
+              resolver: http
+              params:
+                - name: url
+                  value: https://raw.githubusercontent.com/openshift-pipelines/tekton-caches/main/tekton/cache-fetch.yaml
+            params:
+              - name: patterns
+                value: $(params.cachePatterns)
+              - name: source
+                value: oci://$(params.registry):{{hash}}
+              - name: cachePath
+                value: $(workspaces.source.path)/cache
+              - name: workingdir
+                value: $(workspaces.source.path)/repo
+
+    - name: build-task
+      runAfter:
+        - cache-fetch
+      taskRef:
+        name: buildah
+      workspaces:
+        - name: source
+      params:
+        - name: BUILD_EXTRA_ARGS
+          value: --volume=$(workspaces.source.path)/cache:/cache
+        - name: DOCKERFILE
+          value: $(params.dockerfile)
+        - name: CONTEXT
+          value: repo
+        - name: SKIP_PUSH
+          value: true
+        - name: IMAGE
+          value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(context.pipelineRun.name)
+    - name: cache-upload
+      runAfter:
+        - build-task
+      taskSpec:
+        workspaces:
+          - name: source
+        params:
+          - name: cachePatterns
+            default: $(params.cachePatterns)
+          - name: image
+            default: alpine
+        steps:
+          - name: cache-upload
+            ref:
+              resolver: http
+              params:
+                - name: url
+                  value: https://raw.githubusercontent.com/openshift-pipelines/tekton-caches/main/tekton/cache-upload.yaml
+            params:
+              - name: patterns
+                value: $(params.cachePatterns)
+              - name: target
+                value: oci://$(params.registry):{{hash}}
+              - name: cachePath
+                value: $(workspaces.source.path)/cache
+              - name: workingdir
+                value: $(workspaces.source.path)/repo

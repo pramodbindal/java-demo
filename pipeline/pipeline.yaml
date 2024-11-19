@@ -16,7 +16,7 @@ spec:
       default: "./mvnw -Dmaven.repo.local=${LOCAL_CACHE_REPO} install"
     - name: cachePatterns
       type: array
-      default: ["pom.xml"]
+      default: ["**pom.xml", "**build.gradle"]
     - name: image
       type: string
       default: openjdk:latest
