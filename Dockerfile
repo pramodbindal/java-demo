@@ -1,4 +1,4 @@
-FROM gradle:latest
+FROM docker.io/gradle:latest
 WORKDIR /java-demo
 RUN ls -al .
 RUN ./gradlew -g ./gradle-cache clean build --no-daemon
