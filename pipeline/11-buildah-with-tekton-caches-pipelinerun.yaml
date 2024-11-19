@@ -23,8 +23,3 @@ spec:
       value: https://github.com/pramodbindal/java-demo
     - name: branch-name
       value: main
-    - name: build_extra_args
-      value: --volume=$(workspaces.cache.path):/cache
-
-#    - name: dockerfile
-#      value: master
