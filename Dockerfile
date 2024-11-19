@@ -1,4 +1,4 @@
-ARG BUILDER=gradle
+ARG BUILDER=gradle:latest
 ARG LOCAL_CACHE_REPO=./gradle-cache
 
 ARG RUNTIME=gradle
